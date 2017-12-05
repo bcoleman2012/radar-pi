@@ -8,6 +8,182 @@ Any other reproduction in any form without permission is prohibited.
 #include "pyfmcw.h"
 
 
+static audio_interface RADAR_INTERFACE = audio_interface_default;
+static channel_data RADAR_RAW_CHANNELS = channel_data_default; 
+static channel_data RADAR_CHANNELS = channel_data_default; 
+static pulse_data RADAR_PULSE = pulse_data_default; 
+
+
+
+
+int fmcw_setup(unsigned int scanN, unsigned int pulseN, unsigned int rate)
+{
+	unsigned int buffer_length = 2 * scanN * snd_pcm_format_width(SND_PCM_FORMAT_S32_LE) / 8; // size of interleaved buffer (Bytes)
+
+	fmcw_shutdown(); 
+
+	RADAR_INTERFACE.rate = rate; 
+	radar_record_setup(&(RADAR_INTERFACE.capture_handle), &(RADAR_INTERFACE.rate) ); 
+
+	RADAR_INTERFACE.N = scanN; 
+	RADAR_INTERFACE.buffer = malloc(buffer_length); 
+
+	// Set up the radar channels
+
+	RADAR_CHANNELS.N = scanN; 
+	RADAR_CHANNELS.left = malloc(scanN*sizeof(float)); 
+	RADAR_CHANNELS.right = malloc(scanN*sizeof(float));
+
+	RADAR_RAW_CHANNELS.N = scanN; 
+	RADAR_RAW_CHANNELS.left = malloc(scanN*sizeof(float)); 
+	RADAR_RAW_CHANNELS.right = malloc(scanN*sizeof(float));
+
+	if (RADAR_PULSE.pulse != NULL)
+		free(RADAR_PULSE.pulse);
+
+	RADAR_PULSE.N = pulseN; 
+	RADAR_PULSE.pulse = malloc(pulseN*sizeof(float)); 
+
+	fprintf(stdout, "Audio interface set-up\n"); 
+
+	return 0; 
+
+}
+
+
+int fmcw_shutdown()
+{
+	if (RADAR_INTERFACE.capture_handle != NULL)
+		radar_record_shutdown(&capture_handle);
+	if (RADAR_INTERFACE.buffer != NULL)
+		free(RADAR_INTERFACE.buffer);
+
+	if (RADAR_RAW_CHANNELS.left != NULL)
+		free(RADAR_RAW_CHANNELS.left);
+	if (RADAR_RAW_CHANNELS.left != NULL)
+		free(RADAR_RAW_CHANNELS.right);
+
+	if (RADAR_CHANNELS.left != NULL)
+		free(RADAR_CHANNELS.left);
+	if (RADAR_CHANNELS.left != NULL)
+		free(RADAR_CHANNELS.right);
+	
+	if (RADAR_PULSE.pulse != NULL)
+		free(RADAR_PULSE.pulse);
+
+	RADAR_INTERFACE.rate = 0; 
+	RADAR_INTERFACE.N = 0; 
+	RADAR_CHANNELS.N = 0; 
+	RADAR_PULSE.N = 0; 
+	return 0; 
+}
+
+int fmcw_update_pulse(float thresh)
+{
+	int ret; 
+	int scanN = RADAR_INTERFACE.N;
+	int pulseN = RADAR_PULSE.N; 
+	ret = radar_record_readi(&(RADAR_INTERFACE.capture_handle), RADAR_INTERFACE.capture_handle, scanN); 
+	
+	if (ret != 0)
+		return ret; 
+
+	fprintf(stdout, "Read %d samples\n",scanN); 
+
+	// Turn our interleaved int32_t buffer into two float buffers 
+	radar_record_float_channels(RADAR_INTERFACE.buffer, RADAR_RAW_CHANNELS.left, RADAR_RAW_CHANNELS.right, scanN); 
+	
+	fprintf(stdout, "Channels converted to float buffers\n"); 
+
+	// high pass filter to get rid of the DC/low frequency offset 
+	radar_proc_HPF( RADAR_RAW_CHANNELS.left, RADAR_CHANNELS.left, scanN ); 
+	radar_proc_HPF( RADAR_RAW_CHANNELS.right, RADAR_CHANNELS.right, scanN ); 
+
+	fprintf(stdout, "High-pass filtering complete\n"); 
+	
+	// get the pulse 
+	ret = radar_proc_parse_pulse(RADAR_CHANNELS.left, RADAR_CHANNELS.right, scanN, thresh, RADAR_PULSE.pulse, pulseN); 
+	
+	fprintf(stdout, "Pulse taken, ret = %d.\n",ret); 
+
+	return ret; 
+}
+
+int fmcw_print_buffers()
+{
+	int scanN = RADAR_INTERFACE.N;
+	int pulseN = RADAR_PULSE.N; 
+	fprintf(stdout, "RADAR_CHANNELS\nLEFT\tRIGHT\n");
+	for (int i = 0; i < scanN; ++i)
+	{
+		fprintf (stdout, "%f\t%f\n",RADAR_CHANNELS.left[i],RADAR_CHANNELS.right[i]);
+	}
+
+	fprintf(stdout, "RADAR_PULSE");
+	for (int i = 0; i < scanN; ++i)
+	{
+		fprintf (stdout, "%f\n",RADAR_PULSE.pulse[i]);
+	}
+
+	return 0; 
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 int fmcw_getframe(unsigned int scanN, unsigned int rate, float *pulse, float *reFFT, float * imFFT, unsigned int pulseN)
 {
@@ -157,5 +333,16 @@ int fmcw_getframe(unsigned int scanN, unsigned int rate, float *pulse, float *re
 
 	return 0; 
 }
+
+
+
+
+
+
+
+
+
+
+
 
 

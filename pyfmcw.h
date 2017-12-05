@@ -25,5 +25,35 @@ Any other reproduction in any form without permission is prohibited.
 
 int fmcw_getframe(unsigned int scanN, unsigned int rate, float *pulse, float *reFFT, float * imFFT, unsigned int pulseN);
 
+int fmcw_setup(unsigned int scanN, unsigned int pulseN, unsigned int rate); 
+int fmcw_shutdown(); 
+int fmcw_update_pulse(float thresh); 
+int fmcw_print_buffers();
+
+
+struct audio_interface 
+{
+	unsigned int rate;
+	snd_pcm_t * capture_handle;
+	unsigned int N; 
+	int32_t *buffer;
+} audio_interface_default = {0, NULL, 0, NULL};
+
+struct channel_data
+{
+	unsigned int N; 
+	float *left; 
+	float *right; 
+} channel_data_default = {0, NULL, NULL};
+
+struct pulse_data 
+{
+	unsigned int N; 
+	float *pulse; 
+} pulse_data_default = {0, NULL};
+
+
+
+
 
 #endif // __RADAR_RECORD__
