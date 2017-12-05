@@ -37,20 +37,20 @@ struct audio_interface
 	snd_pcm_t * capture_handle;
 	unsigned int N; 
 	int32_t *buffer;
-} audio_interface_default = {0, NULL, 0, NULL};
+} const audio_interface_default = {0, NULL, 0, NULL};
 
 struct channel_data
 {
 	unsigned int N; 
 	float *left; 
 	float *right; 
-} channel_data_default = {0, NULL, NULL};
+} const channel_data_default = {0, NULL, NULL};
 
 struct pulse_data 
 {
 	unsigned int N; 
 	float *pulse; 
-} pulse_data_default = {0, NULL};
+} const pulse_data_default = {0, NULL};
 
 
 

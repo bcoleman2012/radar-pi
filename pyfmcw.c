@@ -54,7 +54,7 @@ int fmcw_setup(unsigned int scanN, unsigned int pulseN, unsigned int rate)
 int fmcw_shutdown()
 {
 	if (RADAR_INTERFACE.capture_handle != NULL)
-		radar_record_shutdown(&capture_handle);
+		radar_record_shutdown(&(RADAR_INTERFACE.capture_handle));
 	if (RADAR_INTERFACE.buffer != NULL)
 		free(RADAR_INTERFACE.buffer);
 
