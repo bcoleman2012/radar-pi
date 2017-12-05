@@ -20,6 +20,7 @@ static char getFrame_docstring[] =
 // int fmcw_print_buffers();
 
 // Module Method Declarations  
+static PyObject* _pyfmcw_test(PyObject *self, PyObject *args);
 static PyObject *_pyfmcw_getFrame(PyObject *self, PyObject *args);
 
 static PyObject *_pyfmcw_setup(PyObject *self, PyObject *args);
