@@ -83,7 +83,7 @@ int fmcw_update_pulse(float thresh)
 	int ret; 
 	int scanN = RADAR_INTERFACE.N;
 	int pulseN = RADAR_PULSE.N; 
-	ret = radar_record_readi(&(RADAR_INTERFACE.capture_handle), RADAR_INTERFACE.capture_handle, scanN); 
+	ret = radar_record_readi(&(RADAR_INTERFACE.capture_handle), RADAR_INTERFACE.buffer, scanN); 
 	
 	if (ret != 0)
 		return ret; 
@@ -119,8 +119,8 @@ int fmcw_print_buffers()
 		fprintf (stdout, "%f\t%f\n",RADAR_CHANNELS.left[i],RADAR_CHANNELS.right[i]);
 	}
 
-	fprintf(stdout, "RADAR_PULSE");
-	for (int i = 0; i < scanN; ++i)
+	fprintf(stdout, "RADAR_PULSE\n");
+	for (int i = 0; i < pulseN; ++i)
 	{
 		fprintf (stdout, "%f\n",RADAR_PULSE.pulse[i]);
 	}
