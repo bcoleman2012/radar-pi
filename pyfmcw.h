@@ -22,15 +22,6 @@ Any other reproduction in any form without permission is prohibited.
 #ifndef __PYFMCW__
 #define __PYFMCW__
 
-
-int fmcw_getframe(unsigned int scanN, unsigned int rate, float *pulse, float *reFFT, float * imFFT, unsigned int pulseN);
-
-int fmcw_setup(unsigned int scanN, unsigned int pulseN, unsigned int rate); 
-int fmcw_shutdown(); 
-int fmcw_update_pulse(float thresh); 
-int fmcw_print_buffers();
-
-
 struct audio_interface 
 {
 	unsigned int rate;
@@ -52,6 +43,13 @@ struct pulse_data
 	float *pulse; 
 };
 
+int fmcw_getframe(unsigned int scanN, unsigned int rate, float *pulse, float *reFFT, float * imFFT, unsigned int pulseN);
+int fmcw_setup(unsigned int scanN, unsigned int pulseN, unsigned int rate); 
+int fmcw_shutdown(); 
+int fmcw_update_pulse(float thresh); 
+int fmcw_print_buffers();
+
+int fmcw_buffer_access(float ** buf, unsigned int * size);
 
 
 

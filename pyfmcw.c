@@ -129,8 +129,12 @@ int fmcw_print_buffers()
 }
 
 
-
-
+int fmcw_buffer_access(float **buf, unsigned int * size)
+{
+	*buf = RADAR_PULSE.pulse; 
+	*size = RADAR_PULSE.N;
+	return; 
+}
 
 
 

@@ -11,26 +11,28 @@ static char module_docstring[] =
 static char getFrame_docstring[] =
 	"Get the next frame of the radar image (performs FFT on the Raspberry Pi GPU)\nAguments: scanN, pulseN, rate\nReturns: pulse, reFFT, imFFT";
 
+
+// int fmcw_getframe(unsigned int scanN, unsigned int rate, float *pulse, float *reFFT, float * imFFT, unsigned int pulseN);
+
+// int fmcw_setup(unsigned int scanN, unsigned int pulseN, unsigned int rate); 
+// int fmcw_shutdown(); 
+// int fmcw_update_pulse(float thresh); 
+// int fmcw_print_buffers();
+
 // Module Method Declarations  
 static PyObject *_pyfmcw_getFrame(PyObject *self, PyObject *args);
 
-static PyObject* _pyfmcw_test(PyObject *self, PyObject *args)
-{
-	npy_intp dims[1] = {10};
-	int len = dims[0]; 
-	float* tstarr = malloc(len*sizeof(float));
-	for (int i = 0; i < len; ++i)
-		tstarr[i] = i; 
-
-	PyObject * ret = PyArray_SimpleNewFromData(1,dims, NPY_FLOAT, tstarr);
-	PyArray_ENABLEFLAGS((PyArrayObject*)ret, NPY_ARRAY_OWNDATA);
-	return ret; 
-}
+static PyObject *_pyfmcw_setup(PyObject *self, PyObject *args);
+static PyObject *_pyfmcw_shutdown(PyObject *self, PyObject *args);
+static PyObject *_pyfmcw_rawPulse(PyObject *self, PyObject *args);
 
 static PyMethodDef pyfmcw_module_methods[] = 
 {
-	{"getFrame", _pyfmcw_getFrame, METH_VARARGS, getFrame_docstring},
-	{"test", _pyfmcw_test, METH_NOARGS, "getFrame_docstring"},
+	{"getFFTFrame", _pyfmcw_getFrame, METH_VARARGS, getFrame_docstring},
+	{"test", _pyfmcw_test, METH_VARARGS, "docstring"},
+	{"setup", _pyfmcw_setup, METH_VARARGS, "docstring"},
+	{"shutdown", _pyfmcw_shutdown, METH_VARARGS, "docstring"},
+	{"rawPulse", _pyfmcw_rawPulse, METH_VARARGS, "docstring"},
 	{NULL, NULL, 0, NULL}
 };
 
@@ -40,7 +42,7 @@ static PyMethodDef pyfmcw_module_methods[] =
 static struct PyModuleDef pyfmcw_module_definition = {
 	PyModuleDef_HEAD_INIT, 
 	"_pyfmcw",
-	"usage: _pyfmcw.getFrame",
+	"usage: (Not yet. Sorry)",
 	-1,
 	pyfmcw_module_methods
 };
@@ -98,6 +100,58 @@ static PyObject *_pyfmcw_getFrame(PyObject *self, PyObject *args)
 	return Py_BuildValue("OOO", pulse_ret,reFFT_ret,imFFT_ret);
 	// Py_RETURN_NONE;
 }
+
+
+static PyObject* _pyfmcw_test(PyObject *self, PyObject *args)
+{
+	npy_intp dims[1] = {10};
+	int len = dims[0]; 
+	float* tstarr = malloc(len*sizeof(float));
+	for (int i = 0; i < len; ++i)
+		tstarr[i] = i; 
+
+	PyObject * ret = PyArray_SimpleNewFromData(1,dims, NPY_FLOAT, tstarr);
+	PyArray_ENABLEFLAGS((PyArrayObject*)ret, NPY_ARRAY_OWNDATA);
+	return ret;
+}
+
+
+static PyObject* _pyfmcw_setup(PyObject *self, PyObject *args)
+{
+	unsigned int scanN, rate, pulseN; 
+	if (!PyArg_ParseTuple(args, "III", &scanN, &pulseN, &rate))
+		return NULL; 
+	fmcw_setup(scanN, pulseN, rate); 
+	Py_RETURN_NONE; 
+}
+static PyObject* _pyfmcw_shutdown(PyObject *self, PyObject *args)
+{
+	fmcw_shutdown(); 
+	Py_RETURN_NONE; 
+}
+static PyObject* _pyfmcw_rawPulse(PyObject *self, PyObject *args)
+{
+
+	float thresh; 
+	float *pulse = NULL; 
+	unsigned int size; 
+	
+	if (!PyArg_ParseTuple(args, "f", &thresh))
+		return NULL; 
+
+	fmcw_update_pulse(thresh);
+	fmcw_buffer_access(&pulse,&size);
+	
+	npy_intp dims[1] = {size};
+	PyObject * pulse_ret = PyArray_SimpleNewFromData(1,dims, NPY_FLOAT, pulse);
+	return pulse_ret; 
+}
+
+
+// int fmcw_setup(unsigned int scanN, unsigned int pulseN, unsigned int rate); 
+// int fmcw_shutdown(); 
+// int fmcw_update_pulse(float thresh); 
+// int fmcw_print_buffers();
 
 
 
