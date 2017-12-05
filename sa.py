@@ -4,8 +4,8 @@ import matplotlib.pyplot as plt
 import time
 
 Fs = 48000
-scanN = 4200 #4096
-pulseN = 1024
+scanN = 512 # 4200 #4096
+pulseN = 256 # 1024 #128 
 
 plotRows = 80
 data = np.zeros([plotRows,pulseN/2])
@@ -37,8 +37,8 @@ while (i < plotRows):
 	# time.sleep(0.001)
 
 
-image_plot = plt.imshow(data, aspect = 'auto', cmap = 'jet',vmin = -20)
-
+image_plot = plt.imshow(data, aspect = 'auto', cmap = 'jet')#,vmin = -20)
+plt.colorbar()
 currentRow = 0
 
 while True: 
