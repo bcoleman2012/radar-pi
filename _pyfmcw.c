@@ -105,15 +105,24 @@ static PyObject *_pyfmcw_getFrame(PyObject *self, PyObject *args)
 
 static PyObject* _pyfmcw_test(PyObject *self, PyObject *args)
 {
-	npy_intp dims[1] = {10};
-	int len = dims[0]; 
-	float* tstarr = malloc(len*sizeof(float));
-	for (int i = 0; i < len; ++i)
-		tstarr[i] = i; 
+	// npy_intp dims[1] = {10};
+	// int len = dims[0]; 
+	// float* tstarr = malloc(len*sizeof(float));
+	// for (int i = 0; i < len; ++i)
+	// 	tstarr[i] = i; 
 
-	PyObject * ret = PyArray_SimpleNewFromData(1,dims, NPY_FLOAT, tstarr);
-	PyArray_ENABLEFLAGS((PyArrayObject*)ret, NPY_ARRAY_OWNDATA);
-	return ret;
+	// PyObject * ret = PyArray_SimpleNewFromData(1,dims, NPY_FLOAT, tstarr);
+	// PyArray_ENABLEFLAGS((PyArrayObject*)ret, NPY_ARRAY_OWNDATA);
+	// return ret;
+
+	unsigned int scanN = 4200; 
+	unsigned int pulseN = 1024; 
+	unsigned int rate = 48000; 
+
+	// fmcw_setup(scanN, pulseN, rate); 
+	fmcw_update_pulse(0.3); 
+	// fmcw_shutdown();
+	Py_RETURN_NONE; 
 }
 
 
@@ -135,6 +144,8 @@ static PyObject* _pyfmcw_rawPulse(PyObject *self, PyObject *args)
 
 	float thresh; 
 	float *pulse = NULL; 
+	fprintf(stdout, "RAWPULSE: NULL pulse = %d\n", pulse);
+	float *ret_buffer = NULL; 
 	unsigned int size; 
 	
 	if (!PyArg_ParseTuple(args, "f", &thresh))
@@ -142,10 +153,18 @@ static PyObject* _pyfmcw_rawPulse(PyObject *self, PyObject *args)
 
 	fmcw_update_pulse(thresh);
 	fmcw_buffer_access(&pulse,&size);
-	
-	npy_intp dims[1] = {size};
-	PyObject * pulse_ret = PyArray_SimpleNewFromData(1,dims, NPY_FLOAT, pulse);
-	return pulse_ret; 
+	fprintf(stdout, "RAWPULSE: pulse = %d\n", pulse);
+
+	// ret_buffer = malloc(size*sizeof(float)); 
+	// for (int i = 0; i < size; ++i)
+	// 	ret_buffer[i] = pulse[i];
+
+	Py_RETURN_NONE;
+
+	// npy_intp dims[1] = {size};
+	// PyObject * pulse_ret = PyArray_SimpleNewFromData(1,dims, NPY_FLOAT, ret_buffer);
+	// PyArray_ENABLEFLAGS((PyArrayObject*)pulse_ret, NPY_ARRAY_OWNDATA);
+	// return pulse_ret; 
 }
 
 

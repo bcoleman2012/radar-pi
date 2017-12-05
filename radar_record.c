@@ -99,7 +99,9 @@ int radar_record_setup(snd_pcm_t **capture_handle,  unsigned int *Fs )
 int radar_record_readi( snd_pcm_t **capture_handle, int32_t * buf, int N )
 {
 	int err = 0; 
-	if (snd_pcm_readi (*capture_handle, buf, N) != N) {
+	int ret = snd_pcm_readi (*capture_handle, buf, N);
+	if (ret != N) {
+		fprintf(stdout, "radar_record_readi: read %d bytes from %d, not %d \n",ret, buf, N);
 		fprintf (stderr, "read from audio interface failed (%s)\n",
 						 err, snd_strerror (err));
 		return -1; 

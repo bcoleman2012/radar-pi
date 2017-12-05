@@ -7,20 +7,26 @@ Any other reproduction in any form without permission is prohibited.
 
 #include "pyfmcw.h"
 
-
 static struct audio_interface RADAR_INTERFACE = {0, NULL, 0, NULL};
 static struct channel_data RADAR_RAW_CHANNELS = {0, NULL, NULL}; 
 static struct channel_data RADAR_CHANNELS = {0, NULL, NULL}; 
 static struct pulse_data RADAR_PULSE =  {0, NULL}; 
 
-
+// static struct audio_interface RADAR_INTERFACE = {0, NULL, 0, NULL};
+// static struct channel_data RADAR_RAW_CHANNELS = {0, NULL, NULL}; 
+// static struct channel_data RADAR_CHANNELS = {0, NULL, NULL}; 
+// static struct pulse_data RADAR_PULSE =  {0, NULL}; 
 
 
 int fmcw_setup(unsigned int scanN, unsigned int pulseN, unsigned int rate)
 {
 	unsigned int buffer_length = 2 * scanN * snd_pcm_format_width(SND_PCM_FORMAT_S32_LE) / 8; // size of interleaved buffer (Bytes)
 
+	fprintf(stdout, "Shutdown attempt\n");
+	fprintf(stdout, "%d , %d \n", RADAR_INTERFACE.capture_handle, RADAR_INTERFACE.buffer);
 	fmcw_shutdown(); 
+	fprintf(stdout, "Shutdown successful\n");
+	fprintf(stdout, "%d , %d \n", RADAR_INTERFACE.capture_handle, RADAR_INTERFACE.buffer);
 
 	RADAR_INTERFACE.rate = rate; 
 	radar_record_setup(&(RADAR_INTERFACE.capture_handle), &(RADAR_INTERFACE.rate) ); 
@@ -57,7 +63,6 @@ int fmcw_shutdown()
 		radar_record_shutdown(&(RADAR_INTERFACE.capture_handle));
 	if (RADAR_INTERFACE.buffer != NULL)
 		free(RADAR_INTERFACE.buffer);
-
 	if (RADAR_RAW_CHANNELS.left != NULL)
 		free(RADAR_RAW_CHANNELS.left);
 	if (RADAR_RAW_CHANNELS.left != NULL)
@@ -71,9 +76,17 @@ int fmcw_shutdown()
 	if (RADAR_PULSE.pulse != NULL)
 		free(RADAR_PULSE.pulse);
 
-	RADAR_INTERFACE.rate = 0; 
-	RADAR_INTERFACE.N = 0; 
-	RADAR_CHANNELS.N = 0; 
+	RADAR_INTERFACE.capture_handle = NULL;
+	RADAR_INTERFACE.buffer = NULL;
+	RADAR_INTERFACE.rate = 0;
+	RADAR_INTERFACE.N = 0;
+	RADAR_RAW_CHANNELS.left = NULL;
+	RADAR_RAW_CHANNELS.right = NULL; 
+	RADAR_RAW_CHANNELS.N = 0; 
+	RADAR_CHANNELS.left = NULL;
+	RADAR_CHANNELS.right = NULL; 
+	RADAR_CHANNELS.N = 0;
+	RADAR_PULSE.pulse = NULL; 
 	RADAR_PULSE.N = 0; 
 	return 0; 
 }
@@ -83,6 +96,20 @@ int fmcw_update_pulse(float thresh)
 	int ret; 
 	int scanN = RADAR_INTERFACE.N;
 	int pulseN = RADAR_PULSE.N; 
+
+	fprintf(stdout, "RADAR_INTERFACE {\n");
+	fprintf(stdout, "\tcapture_handle : %d\n",RADAR_INTERFACE.capture_handle);
+	fprintf(stdout, "\trate : %d\n",RADAR_INTERFACE.rate);
+	fprintf(stdout, "\tbuffer : %d\n",RADAR_INTERFACE.buffer);
+	fprintf(stdout, "\tN : %d}\n",RADAR_INTERFACE.N);
+
+	// fprintf(stdout, "RADAR_PULSE {\n");
+	// fprintf(stdout, "\tcapture_handle : %d\n",RADAR_INTERFACE.capture_handle);
+	// fprintf(stdout, "\trate : %d\n",RADAR_INTERFACE.rate);
+	// fprintf(stdout, "\tbuffer : %d\n",RADAR_INTERFACE.buffer);
+	// fprintf(stdout, "\tN : %d}\n",RADAR_INTERFACE.N);
+
+	// fprintf(stdout, "fmcw_update_pulse: CH@ %d; BUF@ %d\n", &(RADAR_INTERFACE.capture_handle), RADAR_INTERFACE.buffer);
 	ret = radar_record_readi(&(RADAR_INTERFACE.capture_handle), RADAR_INTERFACE.buffer, scanN); 
 	
 	if (ret != 0)
@@ -133,7 +160,7 @@ int fmcw_buffer_access(float **buf, unsigned int * size)
 {
 	*buf = RADAR_PULSE.pulse; 
 	*size = RADAR_PULSE.N;
-	return; 
+	return 0; 
 }
 
 
@@ -191,6 +218,7 @@ int fmcw_buffer_access(float **buf, unsigned int * size)
 
 int fmcw_getframe(unsigned int scanN, unsigned int rate, float *pulse, float *reFFT, float * imFFT, unsigned int pulseN)
 {
+	
 	int ret; 
 	if ( !(pulseN && !(pulseN & (pulseN - 1))) ) // https://stackoverflow.com/questions/3638431/determine-if-an-int-is-a-power-of-2-or-not-in-a-single-line
 	{
@@ -336,6 +364,7 @@ int fmcw_getframe(unsigned int scanN, unsigned int rate, float *pulse, float *re
 	#endif
 
 	return 0; 
+	
 }
 
 

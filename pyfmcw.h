@@ -52,6 +52,4 @@ int fmcw_print_buffers();
 int fmcw_buffer_access(float ** buf, unsigned int * size);
 
 
-
-
 #endif // __RADAR_RECORD__
