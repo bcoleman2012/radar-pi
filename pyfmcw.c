@@ -8,10 +8,10 @@ Any other reproduction in any form without permission is prohibited.
 #include "pyfmcw.h"
 
 
-static struct audio_interface RADAR_INTERFACE = audio_interface_default;
-static struct channel_data RADAR_RAW_CHANNELS = channel_data_default; 
-static struct channel_data RADAR_CHANNELS = channel_data_default; 
-static struct pulse_data RADAR_PULSE = pulse_data_default; 
+static struct audio_interface RADAR_INTERFACE = {0, NULL, 0, NULL};
+static struct channel_data RADAR_RAW_CHANNELS = {0, NULL, NULL}; 
+static struct channel_data RADAR_CHANNELS = {0, NULL, NULL}; 
+static struct pulse_data RADAR_PULSE =  {0, NULL}; 
 
 
 
