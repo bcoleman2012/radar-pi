@@ -128,28 +128,37 @@ int radar_record_shutdown(snd_pcm_t **capture_handle)
 
 int radar_record_float_channels( int32_t * buf, float * left, float * right, int N )
 {
-	int32_t max = 1; 
-	float fmax = 1.0; 
+	int32_t maxL = 1; 
+	int32_t maxR = 1; 
+
+	float fmaxL = 1.0; 
+	float fmaxR = 1.0; 
+
 	// Find the max in each channel, so that we space 
 	// the floats between -1 and +1
-	for (int i = 0; i < 2*N; ++i )
+	for (int i = 0; i < N; ++i )
 	{
-		if (abs(buf[i]) > max)
-		{
-			max = abs(buf[i]);
-		}
+		if (abs(buf[2*i]) > maxL)
+			maxL = abs(buf[2*i]);
+		if (abs(buf[2*i+1]) > maxR)
+			maxR = abs(buf[2*i+1]);
+		// if (abs(buf[i]) > max)
+		// {
+		// 	max = abs(buf[i]);
+		// }
 	}
 
-	fmax = (float)max;
-	
+	fmaxL = (float)maxL;
+	fmaxR = (float)maxR;
+	// fmax = (float)max;
 
 	for (int i = 0; i < N; ++i)
 	{
 		// left
-		left[i] = (float)buf[2*i]/fmax;
+		left[i] = (float)buf[2*i]/fmaxL;
 
 		// right
-		right[i] = (float)buf[2*i+1]/fmax;
+		right[i] = (float)buf[2*i+1]/fmaxR;
 	}
 
 	return 0; 
