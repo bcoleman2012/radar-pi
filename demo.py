@@ -4,7 +4,8 @@ import numpy as np
 import scipy.signal
 
 Fs = 48000
-Tp = 10.0*10**-3
+Tp = 5.0*10**-3
+
 c = 3.0*10**8
 fstart = 2361.0*10**6
 fstop = 2657.0*10**6
@@ -23,7 +24,7 @@ nfft = 2**(i+2)
 # f = np.arange(0,nfft/2.0,Fs/2.0)
 f = np.linspace(0,Fs/2.0,nfft/2)
 R = (c/(dfdt*4.0))*f
-R_root = R**(1.25)
+R_root = R**(2)
 Rmax = Fs/2.0*(c/(dfdt*4.0))
 
 print("Rmax",Rmax)
@@ -55,7 +56,7 @@ plt.ion()
 plt.figure()
 plotRows = 80
 data = np.empty([plotRows,nfft/2])
-image_plot = plt.imshow(data, vmin = 0, vmax = 80,
+image_plot = plt.imshow(data, vmin = 0, vmax = 1,
 						aspect = 'auto', 
 						extent=[0,Rmax,plotRows,0],
 						cmap = 'plasma')#,vmin = -20)
@@ -112,7 +113,7 @@ while True:
 	rhalf = np.abs(r[0:nfft//2])
 
 	data[currentRow] = rhalf*R_root #.^(2.5/2)
-	# max_val = np.max(data)
+	max_val = np.max(data)
 
 	# plt.figure()
 	# plt.plot(np.abs(r))
@@ -121,7 +122,7 @@ while True:
 
 	# data[currentRow] = rdb[0:pulseN/2]
 
-	image_plot.set_data(data)
+	image_plot.set_data(data/max_val)
 	plt.draw()
 
 	currentRow += 1
