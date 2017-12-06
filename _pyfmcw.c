@@ -26,6 +26,8 @@ static PyObject *_pyfmcw_getFrame(PyObject *self, PyObject *args);
 static PyObject *_pyfmcw_setup(PyObject *self, PyObject *args);
 static PyObject *_pyfmcw_shutdown(PyObject *self, PyObject *args);
 static PyObject *_pyfmcw_rawPulse(PyObject *self, PyObject *args);
+static PyObject* _pyfmcw_twoChannels(PyObject *self, PyObject *args); 
+
 
 static PyMethodDef pyfmcw_module_methods[] = 
 {
@@ -34,6 +36,7 @@ static PyMethodDef pyfmcw_module_methods[] =
 	{"setup", _pyfmcw_setup, METH_VARARGS, "docstring"},
 	{"shutdown", _pyfmcw_shutdown, METH_VARARGS, "docstring"},
 	{"rawPulse", _pyfmcw_rawPulse, METH_VARARGS, "docstring"},
+	{"twoChannels", _pyfmcw_twoChannels, METH_VARARGS, "docstring"},
 	{NULL, NULL, 0, NULL}
 };
 
@@ -159,13 +162,27 @@ static PyObject* _pyfmcw_rawPulse(PyObject *self, PyObject *args)
 	// for (int i = 0; i < size; ++i)
 	// 	ret_buffer[i] = pulse[i];
 
-	Py_RETURN_NONE;
-
-	// npy_intp dims[1] = {size};
-	// PyObject * pulse_ret = PyArray_SimpleNewFromData(1,dims, NPY_FLOAT, ret_buffer);
+	npy_intp dims[1] = {size};
+	PyObject * pulse_ret = PyArray_SimpleNewFromData(1,dims, NPY_FLOAT, pulse);
 	// PyArray_ENABLEFLAGS((PyArrayObject*)pulse_ret, NPY_ARRAY_OWNDATA);
-	// return pulse_ret; 
+	return pulse_ret; 
 }
+
+static PyObject* _pyfmcw_twoChannels(PyObject *self, PyObject *args)
+{
+	float *left = NULL; 
+	float *right = NULL;
+	fmcw_two_channels(&left, &right); 
+
+	unsigned int size = fmcw_channel_size(); 
+	npy_intp dims[1] = {size};
+	PyObject * left_ret = PyArray_SimpleNewFromData(1, dims, NPY_FLOAT, left);
+	PyObject * right_ret = PyArray_SimpleNewFromData(1, dims, NPY_FLOAT, right);
+
+	return Py_BuildValue("OO", left_ret,right_ret);
+
+}
+
 
 
 // int fmcw_setup(unsigned int scanN, unsigned int pulseN, unsigned int rate); 

@@ -164,9 +164,51 @@ int fmcw_buffer_access(float **buf, unsigned int * size)
 }
 
 
+int fmcw_two_channels(float ** left, float ** right)
+{
+	int ret; 
+	int scanN = RADAR_INTERFACE.N;
+	int pulseN = RADAR_PULSE.N; 
 
+	fprintf(stdout, "RADAR_INTERFACE {\n");
+	fprintf(stdout, "\tcapture_handle : %d\n",RADAR_INTERFACE.capture_handle);
+	fprintf(stdout, "\trate : %d\n",RADAR_INTERFACE.rate);
+	fprintf(stdout, "\tbuffer : %d\n",RADAR_INTERFACE.buffer);
+	fprintf(stdout, "\tN : %d}\n",RADAR_INTERFACE.N);
 
+	// fprintf(stdout, "RADAR_PULSE {\n");
+	// fprintf(stdout, "\tcapture_handle : %d\n",RADAR_INTERFACE.capture_handle);
+	// fprintf(stdout, "\trate : %d\n",RADAR_INTERFACE.rate);
+	// fprintf(stdout, "\tbuffer : %d\n",RADAR_INTERFACE.buffer);
+	// fprintf(stdout, "\tN : %d}\n",RADAR_INTERFACE.N);
 
+	// fprintf(stdout, "fmcw_update_pulse: CH@ %d; BUF@ %d\n", &(RADAR_INTERFACE.capture_handle), RADAR_INTERFACE.buffer);
+	ret = radar_record_readi(&(RADAR_INTERFACE.capture_handle), RADAR_INTERFACE.buffer, scanN); 
+	
+	if (ret != 0)
+		return ret; 
+
+	fprintf(stdout, "Read %d samples\n",scanN); 
+
+	// Turn our interleaved int32_t buffer into two float buffers 
+	radar_record_float_channels(RADAR_INTERFACE.buffer, RADAR_RAW_CHANNELS.left, RADAR_RAW_CHANNELS.right, scanN); 
+	
+	fprintf(stdout, "Channels converted to float buffers\n"); 
+
+	// high pass filter to get rid of the DC/low frequency offset 
+	radar_proc_HPF( RADAR_RAW_CHANNELS.left, RADAR_CHANNELS.left, scanN ); 
+	radar_proc_HPF( RADAR_RAW_CHANNELS.right, RADAR_CHANNELS.right, scanN ); 
+
+	fprintf(stdout, "High-pass filtering complete\n"); 
+	*left = RADAR_CHANNELS.left; 
+	*right = RADAR_CHANNELS.right;
+	return 0;  
+}
+
+int fmcw_channel_size()
+{
+	return RADAR_CHANNELS.N; 
+}
 
 
 

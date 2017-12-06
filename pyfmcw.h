@@ -50,6 +50,8 @@ int fmcw_update_pulse(float thresh);
 int fmcw_print_buffers();
 
 int fmcw_buffer_access(float ** buf, unsigned int * size);
+int fmcw_two_channels(float ** left, float ** right); 
+int fmcw_channel_size(); 
 
 
 #endif // __RADAR_RECORD__
