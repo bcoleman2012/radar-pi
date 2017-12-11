@@ -13,9 +13,9 @@ BW = fstop-fstart
 dfdt = BW/Tp; 
 
 
-thresh = 0.8
+thresh = 0.6
 pulseN = int(Fs*Tp/2.0)
-scanN = int(1.5*pulseN)
+scanN = int(3*pulseN)
 sifN = int(pulseN/4)
 i = 0
 while 2**i < sifN:
@@ -24,7 +24,7 @@ nfft = 2**(i+2)
 # f = np.arange(0,nfft/2.0,Fs/2.0)
 f = np.linspace(0,Fs/2.0,nfft/2)
 R = (c/(dfdt*4.0))*f
-R_root = R**(2)
+R_root = R#R**(1.5)
 Rmax = Fs/2.0*(c/(dfdt*4.0))
 
 print("Rmax",Rmax)
@@ -41,28 +41,27 @@ trigger, signal = twoChannels()
 
 # Numpy predeclarations for speed
 pulse = np.array((pulseN))
-hamming_window = scipy.signal.hamming(sifN)
+hamming_window = scipy.signal.hamming(sifN*2)
 
 
 
 
 plt.ion()
-#rectUp = plt.axvspan(0, pulseN, ymin=-1, ymax=1, alpha = 0.2, color = 'b')
-#rectDown = plt.axvspan(0, pulseN, ymin=-1, ymax=1, alpha = 0.2, color = 'purple')
-#lr, = plt.plot(trigger)
-#ll, = plt.plot(signal)
-#plt.ylim(-1.0,1.0)
+'''
+rectUp = plt.axvspan(0, pulseN, ymin=-1, ymax=1, alpha = 0.2, color = 'b')
+rectDown = plt.axvspan(0, pulseN, ymin=-1, ymax=1, alpha = 0.2, color = 'purple')
+lr, = plt.plot(trigger)
+ll, = plt.plot(signal)
+plt.ylim(-1.0,1.0)
+'''
 
 plt.figure()
 plotRows = 80
 data = np.empty([plotRows,nfft/2])
 image_plot = plt.imshow(data, vmin = -15, vmax = 0,
 						aspect = 'auto', 
-						extent=[0,20,plotRows,0],
+						extent=[0,Rmax,plotRows,0],
 						cmap = 'plasma')#,vmin = -20)
-#plt.axis('off')
-plt.xlabel("Range (m)")
-plt.ylabel("Time [n]")
 plt.colorbar()
 currentRow = 0
 plt.show()
@@ -97,12 +96,12 @@ while True:
 	#rectDown.set_xy(coords)
 
 	try: 
-		# print("ScanN: ",scanN)
-		# print(i+sifN,i+2*sifN)
-		# print(i+3*sifN,i+4*sifN)
+		#print("ScanN: ",scanN)
+		#print(i+sifN,i+2*sifN)
+		#print(i+3*sifN,i+4*sifN)
 
-		sifUp = signal[i+sifN:i+2*sifN]*hamming_window
-		sifDown = signal[i+sifN:i+2*sifN]*hamming_window
+		sifUp = signal[i:i+2*sifN]*hamming_window
+		sifDown = signal[i+2*sifN:i+4*sifN]*hamming_window
 	except: 
 		print("Insufficient scan period. This could be due to a chance occurrance, but if it occurs enough, increase ScanN")
 		continue

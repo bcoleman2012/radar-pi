@@ -2,6 +2,7 @@ from _pyfmcw import *
 import matplotlib.pyplot as plt
 import numpy as np
 import scipy.signal
+import scipy.ndimage
 
 Fs = 33000 #48000
 Tp = 10.0*10**-3
@@ -12,40 +13,125 @@ fstop = 2657.0*10**6
 BW = fstop-fstart
 dfdt = BW/Tp; 
 
+seconds = 0.5 # recording length, obviously in seconds
+
 
 thresh = 0.8
+frmax = 43
+scanN = int(seconds*Fs)
 pulseN = int(Fs*Tp/2.0)
-scanN = int(1.5*pulseN)
-sifN = int(pulseN/4)
+sifN = int(pulseN/2)
+hamming_window = scipy.signal.hamming(sifN)
+
+
+Rmax = Fs/2.0*(c/(dfdt*4.0))
+print("Rmax:",Rmax)
+print("PulseN:",pulseN)
+print("ScanN:",scanN)
+
+NRuns = int(scanN/(pulseN))-1
+sif = np.zeros((2*NRuns,sifN))
+
+
+
 i = 0
 while 2**i < sifN:
 	i += 1
 nfft = 2**(i+2)
-# f = np.arange(0,nfft/2.0,Fs/2.0)
+
 f = np.linspace(0,Fs/2.0,nfft/2)
 R = (c/(dfdt*4.0))*f
-R_root = R**(2)
-Rmax = Fs/2.0*(c/(dfdt*4.0))
+R_root = R**(1.5)
 
-print("Rmax",Rmax)
+print("SIF Shape:",sif.shape)
 
-print(pulseN)
-print(scanN)
-print("SifN = ",sifN," with SifPADN = ",nfft)
-
-
-
-setup(scanN, pulseN, Fs)
-# p = rawPulse(0.5)
-trigger, signal = twoChannels()
-
-# Numpy predeclarations for speed
-pulse = np.array((pulseN))
-hamming_window = scipy.signal.hamming(sifN)
+# vmin = -15 when no FIR vertical mean'ing
+plt.ion()
+data = np.empty([2*NRuns-1,nfft/2])
+image_plot = plt.imshow(data, vmin = -20, vmax = 0,
+						aspect = 'auto', 
+						extent=[0,10,seconds,0],
+						cmap = 'viridis')#,vmin = -20)
 
 
 
 
+#for i in range(1000): 
+while True: 
+	print("Doin the thing")
+	setup(scanN, pulseN, Fs)
+	trigger, signal = twoChannels()
+	#shutdown()
+	#print("Signal read")
+
+	idx_prev = 0
+	run = 0
+	i = 0
+	while i < (scanN - pulseN): 
+		#print("Checking ",i)
+		if trigger[i] > thresh: 
+			if i - idx_prev > 10: 
+				# if here, we have a pulse
+				sif[run,:] = signal[i:i+sifN]*hamming_window
+				run += 1
+				sif[run,:] = signal[i+sifN:i+2*sifN]*hamming_window
+				run += 1
+				i = i + pulseN
+			else: 
+				idx_prev = i
+				i += 1
+			if run >= 2*NRuns: 
+				break
+		else: 
+			i += 1
+	
+	#print("2")
+	f = np.linspace(0,Fs/2.0,nfft/2)
+	R = (c/(dfdt*4.0))*f
+	#print("3")
+	fr = (sif[0:NRuns-2,:] + sif[1:NRuns-1,:])*0.5
+
+	r = np.fft.fft(fr, n = nfft)
+
+	rdb = 20*np.log10(1+np.abs((r[:,0:nfft//2])*R_root))
+	#print("4")	
+	#frmax = np.max(rdb)
+	#print(frmax)
+	rclutter_reduced = rdb-frmax
+	rclutter_reduced = scipy.ndimage.uniform_filter1d(rclutter_reduced, 4, axis = 1)
+
+	#plt.imshow(rclutter_reduced, aspect = 'auto', vmin = -40)
+	#plt.colorbar()
+	#plt.show()
+
+	image_plot.set_data(rclutter_reduced)
+	plt.draw()
+	plt.pause(0.01)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+'''
 plt.ion()
 #rectUp = plt.axvspan(0, pulseN, ymin=-1, ymax=1, alpha = 0.2, color = 'b')
 #rectDown = plt.axvspan(0, pulseN, ymin=-1, ymax=1, alpha = 0.2, color = 'purple')
@@ -136,7 +222,7 @@ while True:
 	# plt.show()
 	plt.pause(0.001)
 
-
+'''
 
 
 
